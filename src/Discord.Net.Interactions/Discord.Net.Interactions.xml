@@ -4,6 +4,22 @@
         <name>Discord.Net.Interactions</name>
     </assembly>
     <members>
+        <member name="T:Discord.Interactions.ChannelTypesAttribute">
+            <summary>
+                Specify the target channel types for a <see cref="F:Discord.ApplicationCommandOptionType.Channel"/> option
+            </summary>
+        </member>
+        <member name="P:Discord.Interactions.ChannelTypesAttribute.ChannelTypes">
+            <summary>
+                The allowed channel types for this option.
+            </summary>
+        </member>
+        <member name="M:Discord.Interactions.ChannelTypesAttribute.#ctor(Discord.ChannelType[])">
+            <summary>
+                Specify the target channel types for a <see cref="F:Discord.ApplicationCommandOptionType.Channel"/> option
+            </summary>
+            <param name="channelTypes">The allowed channel types for this option.</param>
+        </member>
         <member name="T:Discord.Interactions.ChoiceAttribute">
             <summary>
                 Add a pre-determined argument value to a command parameter
@@ -386,6 +402,9 @@
         <member name="P:Discord.Interactions.CommandInfo`1.Discord#Interactions#ICommandInfo#Parameters">
             <inheritdoc/>
         </member>
+        <member name="M:Discord.Interactions.CommandInfo`1.ToString">
+            <inheritdoc/>
+        </member>
         <member name="T:Discord.Interactions.ComponentCommandInfo">
             <summary>
                 Represents the info class of an attribute based method for handling Component Interaction events
@@ -400,19 +419,16 @@
         <member name="M:Discord.Interactions.ComponentCommandInfo.ExecuteAsync(Discord.IInteractionCommandContext,System.IServiceProvider)">
             <inheritdoc/>
         </member>
-        <member name="M:Discord.Interactions.ComponentCommandInfo.ExecuteAsync(Discord.IInteractionCommandContext,System.IServiceProvider,System.String[])">
+        <member name="M:Discord.Interactions.ComponentCommandInfo.ExecuteAsync(Discord.IInteractionCommandContext,System.IServiceProvider,System.Collections.Generic.IEnumerable{Discord.Interactions.CaptureGroupResult})">
             <summary>
                 Execute this command using dependency injection
             </summary>
             <param name="context">Context that will be injected to the <see cref="T:Discord.Interactions.InteractionModuleBase`1"/></param>
             <param name="services">Services that will be used while initializing the <see cref="T:Discord.Interactions.InteractionModuleBase`1"/></param>
-            <param name="additionalArgs">Provide additional string parameters to the method along with the auto generated parameters</param>
+            <param name="wildCardCaptures">Provide additional string parameters to the method along with the auto generated parameters</param>
             <returns>
                 A task representing the asyncronous command execution process
             </returns>
-        </member>
-        <member name="M:Discord.Interactions.ComponentCommandInfo.ExecuteAsync(Discord.IInteractionCommandContext,System.Collections.Generic.IEnumerable{Discord.Interactions.CommandParameterInfo},System.Collections.Generic.IEnumerable{System.String},System.IServiceProvider)">
-            <inheritdoc/>
         </member>
         <member name="T:Discord.Interactions.ContextCommandInfo">
             <summary>
@@ -769,6 +785,29 @@
                 Get the parameter choices of this Slash Application Command parameter
             </summary>
         </member>
+        <member name="P:Discord.Interactions.SlashCommandParameterInfo.ChannelTypes">
+            <summary>
+                Gets the allowed channel types for this option.
+            </summary>
+        </member>
+        <member name="T:Discord.Interactions.InteractionCommandContext">
+            <inheritdoc cref="T:Discord.IInteractionCommandContext"/>
+        </member>
+        <member name="P:Discord.Interactions.InteractionCommandContext.Client">
+            <inheritdoc/>
+        </member>
+        <member name="P:Discord.Interactions.InteractionCommandContext.Guild">
+            <inheritdoc/>
+        </member>
+        <member name="P:Discord.Interactions.InteractionCommandContext.Channel">
+            <inheritdoc/>
+        </member>
+        <member name="P:Discord.Interactions.InteractionCommandContext.User">
+            <inheritdoc/>
+        </member>
+        <member name="P:Discord.Interactions.InteractionCommandContext.Interaction">
+            <inheritdoc/>
+        </member>
         <member name="T:Discord.Interactions.InteractionCommandError">
             <summary>
                 Defines the type of error a command can throw.
@@ -843,6 +882,11 @@
         </member>
         <member name="M:Discord.Interactions.InteractionModuleBase`1.Discord#Interactions#IInteractionModuleBase#SetContext(Discord.IInteractionCommandContext)">
             <inheritdoc/>
+        </member>
+        <member name="T:Discord.Interactions.InteractionModuleBase">
+            <summary>
+                Provides a base class for a command module to inherit from.
+            </summary>
         </member>
         <member name="T:Discord.Interactions.InteractionService">
             <summary>
@@ -1501,27 +1545,25 @@
                 otherwise the Task result is <see langword="null"/>
             </returns>
         </member>
-        <member name="M:Discord.Interactions.InteractionUtility.WaitForMessageComponentAsync(Discord.WebSocket.BaseSocketClient,Discord.IInteractionCommandContext,System.TimeSpan,System.Boolean,System.Boolean,System.Threading.CancellationToken)">
+        <member name="M:Discord.Interactions.InteractionUtility.WaitForMessageComponentAsync(Discord.WebSocket.BaseSocketClient,Discord.IUserMessage,System.TimeSpan,System.Threading.CancellationToken)">
             <summary>
-            Wait for an Message Component Interaction event for a given amount of time as an asynchronous opration
+               Wait for an Message Component Interaction event for a given amount of time as an asynchronous opration 
             </summary>
             <param name="client">Client that should be listened to for the <see cref="E:Discord.WebSocket.BaseSocketClient.InteractionCreated"/> event</param>
-            <param name="ctx">Command context that will be used to determine the target user and the target channel</param>
+            <param name="fromMessage">The message that <see cref="E:Discord.WebSocket.BaseSocketClient.ButtonExecuted"/> or <see cref="E:Discord.WebSocket.BaseSocketClient.SelectMenuExecuted"/> should originate from</param>
             <param name="timeout">Timeout duration for this operation</param>
-            <param name="sameUser">Wait for an interaction that is from the same user as in the <paramref name="ctx"/></param>
-            <param name="sameChannel">Wait for an interaction that is from the same channel as in the <paramref name="ctx"/></param>
             <param name="cancellationToken">Token for canceling the wait operation</param>
             <returns>
-            A Task representing the asyncronous waiting operation with a <see cref="T:Discord.IDiscordInteraction"/> result,
-            the result is null if the process timed out before receiving a valid Interaction.
+                A Task representing the asyncronous waiting operation with a <see cref="T:Discord.IDiscordInteraction"/> result,
+                the result is null if the process timed out before receiving a valid Interaction.
             </returns>
         </member>
-        <member name="M:Discord.Interactions.InteractionUtility.ConfirmAsync(Discord.WebSocket.BaseSocketClient,Discord.IInteractionCommandContext,System.TimeSpan,System.String,System.Threading.CancellationToken)">
+        <member name="M:Discord.Interactions.InteractionUtility.ConfirmAsync(Discord.WebSocket.BaseSocketClient,Discord.IMessageChannel,System.TimeSpan,System.String,System.Threading.CancellationToken)">
             <summary>
             Create a confirmation dialog and wait for user input asynchronously
             </summary>
             <param name="client">Client that should be listened to for the <see cref="E:Discord.WebSocket.BaseSocketClient.InteractionCreated"/> event</param>
-            <param name="ctx">Command context that will be used to determine the target user and the target channel</param>
+            <param name="channel">Send the confirmation prompt to this channel</param>
             <param name="timeout">Timeout duration of this operation</param>
             <param name="message">Optional custom prompt message</param>
             <param name="cancellationToken">Token for canceling the wait operation</param>

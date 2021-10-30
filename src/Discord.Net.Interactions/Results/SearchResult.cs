@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Discord.Interactions
 {
@@ -6,24 +8,24 @@ namespace Discord.Interactions
     {
         public string Text { get; }
         public T Command { get; }
-        public string[] RegexCaptureGroups { get; }
+        public IReadOnlyCollection<CaptureGroupResult> RegexCaptureGroups { get; }
         public InteractionCommandError? Error { get; }
 
         public string ErrorReason { get; }
 
         public bool IsSuccess => !Error.HasValue;
 
-        private SearchResult (string text, T commandInfo, string[] captureGroups, InteractionCommandError? error, string reason)
+        private SearchResult (string text, T commandInfo, CaptureGroupResult[] captureGroups, InteractionCommandError? error, string reason)
         {
             Text = text;
             Error = error;
-            RegexCaptureGroups = captureGroups;
+            RegexCaptureGroups = captureGroups?.ToImmutableList();
             Command = commandInfo;
             ErrorReason = reason;
         }
 
-        public static SearchResult<T> FromSuccess (string text, T commandInfo, string[] wildCardMatch = null) =>
-            new SearchResult<T>(text, commandInfo, wildCardMatch, null, null);
+        public static SearchResult<T> FromSuccess (string text, T commandInfo, CaptureGroupResult[] captureGroups = null) =>
+            new SearchResult<T>(text, commandInfo, captureGroups, null, null);
 
         public static SearchResult<T> FromError (string text, InteractionCommandError error, string reason) =>
             new SearchResult<T>(text, null, null, error, reason);

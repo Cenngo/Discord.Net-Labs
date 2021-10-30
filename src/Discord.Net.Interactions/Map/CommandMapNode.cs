@@ -8,9 +8,11 @@ namespace Discord.Interactions
 {
     internal class CommandMapNode<T> where T : class, ICommandInfo
     {
-        private const string RegexWildCardExp = "(\\w+)?";
+        private const string RegexWildCardExp = "(?<$1>\\w+)?";
 
-        private readonly string _wildCardStr = "*";
+        private readonly string _openingWildCardDelimiter;
+        private readonly string _closingWildCardDelimiter;
+        private string _wildCardPattern => _openingWildCardDelimiter + @"(\w+)" + _closingWildCardDelimiter;
         private readonly ConcurrentDictionary<string, CommandMapNode<T>> _nodes;
         private readonly ConcurrentDictionary<string, T> _commands;
         private readonly ConcurrentDictionary<Regex, T> _wildCardCommands;
@@ -20,24 +22,24 @@ namespace Discord.Interactions
         public IReadOnlyDictionary<Regex, T> WildCardCommands => _wildCardCommands;
         public string Name { get; }
 
-        public CommandMapNode (string name, string wildCardExp = null)
+        public CommandMapNode (string name, string openingWildCardDelimiter = null, string closingWildCardDelimiter = null)
         {
             Name = name;
             _nodes = new ConcurrentDictionary<string, CommandMapNode<T>>();
             _commands = new ConcurrentDictionary<string, T>();
             _wildCardCommands = new ConcurrentDictionary<Regex, T>();
 
-            if (!string.IsNullOrEmpty(wildCardExp))
-                _wildCardStr = wildCardExp;
+            _openingWildCardDelimiter = openingWildCardDelimiter ?? "{";
+            _closingWildCardDelimiter = closingWildCardDelimiter ?? "}";
         }
 
         public void AddCommand (string[] keywords, int index, T commandInfo)
         {
             if (keywords.Length == index + 1)
             {
-                if (commandInfo.SupportsWildCards && commandInfo.Name.Contains(_wildCardStr))
+                if (commandInfo.SupportsWildCards && Regex.IsMatch(commandInfo.Name, _wildCardPattern))
                 {
-                    var patternStr = "\\A" + commandInfo.Name.Replace(_wildCardStr, RegexWildCardExp) + "\\Z";
+                    var patternStr =  ConstructRegex(commandInfo.Name);
                     var regex = new Regex(patternStr, RegexOptions.Singleline | RegexOptions.Compiled);
 
                     if (!_wildCardCommands.TryAdd(regex, commandInfo))
@@ -51,7 +53,7 @@ namespace Discord.Interactions
             }
             else
             {
-                var node = _nodes.GetOrAdd(keywords[index], (key) => new CommandMapNode<T>(key, _wildCardStr));
+                var node = _nodes.GetOrAdd(keywords[index], (key) => new CommandMapNode<T>(key, _openingWildCardDelimiter, _closingWildCardDelimiter));
                 node.AddCommand(keywords, ++index, commandInfo);
             }
         }
@@ -81,13 +83,18 @@ namespace Discord.Interactions
                 {
                     foreach (var cmdPair in _wildCardCommands)
                     {
-                        var match = cmdPair.Key.Match(keywords[index]);
+                        var regex = cmdPair.Key;
+                        var match = regex.Match(keywords[index]);
+
                         if (match.Success)
                         {
-                            var args = new string[match.Groups.Count - 1];
+                            var args = new CaptureGroupResult[match.Groups.Count - 1];
 
                             for (var i = 1; i < match.Groups.Count; i++)
-                                args[i - 1] = match.Groups[i].Value;
+                            {
+                                var group = match.Groups[i];
+                                args[i - 1] = new CaptureGroupResult(regex.GroupNameFromNumber(group.Index), group.Value);
+                            }
 
                             return SearchResult<T>.FromSuccess(name, cmdPair.Value, args.ToArray());
                         }
@@ -103,10 +110,13 @@ namespace Discord.Interactions
             return SearchResult<T>.FromError(name, InteractionCommandError.UnknownCommand, $"No {typeof(T).FullName} found for {name}");
         }
 
-        public SearchResult<T> GetCommand (string text, int index, char[] seperators)
+        public SearchResult<T> GetCommand (string text, char[] seperators)
         {
             var keywords = text.Split(seperators);
-            return GetCommand(keywords, index);
+            return GetCommand(keywords, 0);
         }
+
+        private string ConstructRegex(string input) =>
+            "\\A" + Regex.Replace(input, _wildCardPattern, RegexWildCardExp) + "\\Z";
     }
 }

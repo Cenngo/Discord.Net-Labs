@@ -641,7 +641,7 @@ namespace Discord.Interactions
                 throw new InvalidOperationException("This module is not a top level application command. You cannot change its permissions");
 
             if (guild is null)
-                throw new ArgumentNullException("guild");
+                throw new ArgumentNullException(nameof(guild));
 
             var commands = await Client.Rest.GetGuildApplicationCommands(guild.Id).ConfigureAwait(false);
             var appCommand = commands.First(x => x.Name == module.SlashGroupName);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Discord.Interactions
 {
-    internal abstract class DefaultEntityTypeConverter<T> : TypeConverter<T> where T : class
+    public abstract class DefaultEntityTypeConverter<T> : TypeConverter<T> where T : class
     {
         public override Task<TypeConverterResult> ReadAsync (IInteractionCommandContext context, SocketSlashCommandDataOption option, IServiceProvider services)
         {
@@ -20,17 +20,17 @@ namespace Discord.Interactions
         }
     }
 
-    internal class DefaultRoleConverter<T> : DefaultEntityTypeConverter<T> where T : class, IRole
+    public class DefaultRoleConverter<T> : DefaultEntityTypeConverter<T> where T : class, IRole
     {
         public override ApplicationCommandOptionType GetDiscordType ( ) => ApplicationCommandOptionType.Role;
     }
 
-    internal class DefaultUserConverter<T> : DefaultEntityTypeConverter<T> where T : class, IUser
+    public class DefaultUserConverter<T> : DefaultEntityTypeConverter<T> where T : class, IUser
     {
         public override ApplicationCommandOptionType GetDiscordType ( ) => ApplicationCommandOptionType.User;
     }
 
-    internal class DefaultChannelConverter<T> : DefaultEntityTypeConverter<T> where T : class, IChannel
+    public class DefaultChannelConverter<T> : DefaultEntityTypeConverter<T> where T : class, IChannel
     {
         private readonly List<ChannelType> _channelTypes;
 
@@ -76,7 +76,7 @@ namespace Discord.Interactions
         }
     }
 
-    internal class DefaultMentionableConverter<T> : DefaultEntityTypeConverter<T> where T : class, IMentionable
+    public class DefaultMentionableConverter<T> : DefaultEntityTypeConverter<T> where T : class, IMentionable
     {
         public override ApplicationCommandOptionType GetDiscordType ( ) => ApplicationCommandOptionType.Mentionable;
     }

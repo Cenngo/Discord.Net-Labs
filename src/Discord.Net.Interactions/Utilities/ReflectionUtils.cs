@@ -153,5 +153,26 @@ namespace Discord.Interactions
                 return instance;
             };
         }
+
+        public static bool MeetsGenericConstraints(Type genericType, Type type)
+        {
+            var genericAttributes = genericType.GenericParameterAttributes;
+            var genericArguments = genericType.GetGenericArguments();
+            var constraints = genericArguments.SelectMany(x => x.GetGenericParameterConstraints());
+
+            if (genericAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint) && type.IsValueType)
+                return false;
+
+            if (genericAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint) && Nullable.GetUnderlyingType(type) is not null)
+                return false;
+
+            if (genericAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint) && (!type.IsValueType && type.GetConstructor(Type.EmptyTypes) is null))
+                return false;
+
+            if (!constraints.Any(x => x.IsAssignableFrom(type)))
+                return false;
+
+            return true;
+        }
     }
 }

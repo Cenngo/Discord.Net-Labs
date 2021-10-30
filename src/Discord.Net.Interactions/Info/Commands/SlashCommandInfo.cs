@@ -46,14 +46,14 @@ namespace Discord.Interactions
                 while (options != null && options.Any(x => x.Type == ApplicationCommandOptionType.SubCommand || x.Type == ApplicationCommandOptionType.SubCommandGroup))
                     options = options.ElementAt(0)?.Options;
 
-                return await ExecuteAsync(context, Parameters, options?.ToList(), services);
+                return await ExecuteAsync(context, Parameters, options, services);
             }
             else
                 return ExecuteResult.FromError(InteractionCommandError.ParseFailed, $"Provided {nameof(IInteractionCommandContext)} doesn't belong to a Slash Command Interaction");
         }
 
         public async Task<IResult> ExecuteAsync (IInteractionCommandContext context, IEnumerable<SlashCommandParameterInfo> paramList,
-            List<SocketSlashCommandDataOption> argList, IServiceProvider services)
+            IEnumerable<SocketSlashCommandDataOption> argList, IServiceProvider services)
         {
             try
             {
@@ -66,7 +66,7 @@ namespace Discord.Interactions
                 {
                     var parameter = paramList.ElementAt(i);
 
-                    var arg = argList?.Find(x => string.Equals(x.Name, parameter.Name, StringComparison.OrdinalIgnoreCase));
+                    var arg = argList?.FirstOrDefault(x => string.Equals(x.Name, parameter.Name, StringComparison.OrdinalIgnoreCase));
 
                     if (arg == default)
                     {
