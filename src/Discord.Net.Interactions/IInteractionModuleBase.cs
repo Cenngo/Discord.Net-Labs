@@ -1,3 +1,4 @@
+using Discord.Interactions.Builders;
 using System.Threading.Tasks;
 
 namespace Discord.Interactions
@@ -37,10 +38,17 @@ namespace Discord.Interactions
         void AfterExecute (ICommandInfo command);
 
         /// <summary>
-        ///     Method body to be executed before the derived module is built.
+        ///     Method body to be executed when <see cref="ModuleBuilder.Build(InteractionService, System.IServiceProvider, ModuleInfo)"/> is called.
         /// </summary>
         /// <param name="commandService">Command Service instance that built this module.</param>
         /// <param name="module">Info class of this module.</param>
         void OnModuleBuilding (InteractionService commandService, ModuleInfo module);
+
+        /// <summary>
+        ///     Method for modifying the module builder of this class right after the automated module construction ends.
+        /// </summary>
+        /// <param name="commandService">Command Service instance that built this module.</param>
+        /// <param name="builder">Builder of this module.</param>
+        void Construct(InteractionService commandService, ModuleBuilder builder);
     }
 }
