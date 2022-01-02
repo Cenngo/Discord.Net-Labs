@@ -5,6 +5,8 @@ namespace System.Text.RegularExpressions
 {
     internal static class RegexUtils
     {
+        internal const string RegexWildCardExp = "\\S+";
+
         internal const byte Q = 5;    // quantifier
         internal const byte S = 4;    // ordinary stoppper
         internal const byte Z = 3;    // ScanBlank stopper
@@ -81,5 +83,26 @@ namespace System.Text.RegularExpressions
         {
             return (ch <= '|' && _category[ch] >= E);
         }
+
+        internal static Regex CreateRegexPattern(string input, string wildCardStr)
+        {
+            var escapedStr = EscapeExcluding(input, wildCardStr.ToArray());
+            var initial = "\\A" + escapedStr.Replace(wildCardStr, RegexWildCardExp) + "\\Z";
+            var patternStr = Regex.Replace(initial, @"{(?<name>\w+):(?<constraint>\w+)?}", match => $"(?<{match.Groups["name"].Value}>{(match.Groups["constraint"].Success ? GetConstraint(match.Groups["constraint"].Value) : @"\S+")})");
+            return new Regex(patternStr, RegexOptions.Compiled | RegexOptions.Singleline);
+
+        }
+
+        private static string GetConstraint(string key) =>
+            key switch
+            {
+                "alpha" => @"\w+",
+                "int" => @"-?\d+",
+                "bool" => @"(true|false)",
+                "datetime" => @"(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}(am|pm)|\d{4}-\d{2}-\d{2})",
+                "float" or "decimal" => @"-?\d(.\d+)?",
+                "guid" => @"[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}",
+                _ => throw new InvalidOperationException($"{key} isn't a valid wild card constraint.");
+            };
     }
 }

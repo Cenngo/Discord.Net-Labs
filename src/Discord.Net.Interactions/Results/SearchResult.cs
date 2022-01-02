@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Discord.Interactions
 {
@@ -21,7 +23,7 @@ namespace Discord.Interactions
         /// <summary>
         ///     Gets the Regex groups captured by the wild card pattern.
         /// </summary>
-        public string[] RegexCaptureGroups { get; }
+        public IReadOnlyDictionary<string, string> RegexCaptureGroups { get; }
 
         /// <inheritdoc/>
         public InteractionCommandError? Error { get; }
@@ -32,11 +34,11 @@ namespace Discord.Interactions
         /// <inheritdoc/>
         public bool IsSuccess => !Error.HasValue;
 
-        private SearchResult (string text, T commandInfo, string[] captureGroups, InteractionCommandError? error, string reason)
+        private SearchResult (string text, T commandInfo, IDictionary<string, string> captureGroups, InteractionCommandError? error, string reason)
         {
             Text = text;
             Error = error;
-            RegexCaptureGroups = captureGroups;
+            RegexCaptureGroups = captureGroups.ToImmutableDictionary();
             Command = commandInfo;
             ErrorReason = reason;
         }
@@ -47,8 +49,8 @@ namespace Discord.Interactions
         /// <returns>
         ///     A <see cref="SearchResult{T}" /> that does not contain any errors.
         /// </returns>
-        public static SearchResult<T> FromSuccess (string text, T commandInfo, string[] wildCardMatch = null) =>
-            new SearchResult<T>(text, commandInfo, wildCardMatch, null, null);
+        public static SearchResult<T> FromSuccess (string text, T commandInfo, IDictionary<string, string> captureGroups = null) =>
+            new SearchResult<T>(text, commandInfo, captureGroups, null, null);
 
         /// <summary>
         ///     Initializes a new <see cref="SearchResult{T}" /> with a specified <see cref="InteractionCommandError" /> and its
